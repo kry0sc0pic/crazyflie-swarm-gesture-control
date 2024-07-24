@@ -13,6 +13,10 @@ from cflib.positioning.position_hl_commander import PositionHlCommander
 from cflib.crazyflie.swarm import Swarm, CachedCfFactory
 from utils import wait_for_position_estimator
 
+# tensorflow
+USE_TFLITE = True
+TFLITE_MODEL = "models/singlepose-lightning/3.tflite"
+
 # crazyflie config
 URIS = ["radio://0/90/2M/E7E7E7E7E5"]
 DRY_RUN = True
@@ -20,8 +24,24 @@ DRY_RUN = True
 init_drivers()
 
 # Download the model from TF Hub.
-model = hub.load('https://tfhub.dev/google/movenet/singlepose/lightning/3')
-movenet = model.signatures['serving_default']
+if not USE_TFLITE:
+    model = hub.load('https://tfhub.dev/google/movenet/singlepose/lightning/3')
+    movenet = model.signatures['serving_default']
+
+else:
+    interpreter = tf.lite.Interpreter(model_path=TFLITE_MODEL)
+    interpreter.allocate_tensors()
+    def movenet(input_image):
+        # TF Lite format expects tensor type of uint8.
+        input_image = tf.cast(input_image, dtype=tf.float32)
+        input_details = interpreter.get_input_details()
+        output_details = interpreter.get_output_details()
+        interpreter.set_tensor(input_details[0]['index'], input_image.numpy())
+        # Invoke inference.
+        interpreter.invoke()
+        # Get the model prediction.
+        keypoints_with_scores = interpreter.get_tensor(output_details[0]['index'])
+        return keypoints_with_scores
 
 # Threshold for detection
 threshold = .3
@@ -121,8 +141,8 @@ while success:
     outputs = movenet(image)
 
     # Output is a [1, 1, 17, 3] tensor.
-    keypoints = outputs['output_0']
-    kps = keypoints[0][0].numpy()
+    keypoints = outputs if USE_TFLITE else outputs['output_0']
+    kps = keypoints[0][0] if USE_TFLITE else keypoints[0][0].numpy()
     r_hip = kps[12]
     l_hip = kps[11]
     r_wrist = kps[10]
@@ -177,7 +197,7 @@ while success:
     # iterate through keypoints
     for i,k in enumerate(keypoints[0,0,:,:]):
         # Converts to numpy array
-        k = k.numpy()
+        k = k if USE_TFLITE else k.numpy()
 
         # Checks confidence for keypoint
         if k[2] > threshold:
