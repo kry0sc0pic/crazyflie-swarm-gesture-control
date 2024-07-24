@@ -1,3 +1,5 @@
 imageio
 opencv-python
 tensorflow_hub
+cflib
+rich
