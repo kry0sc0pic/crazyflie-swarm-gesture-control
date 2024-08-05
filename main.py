@@ -13,7 +13,7 @@ from cflib.crazyflie.swarm import Swarm, CachedCfFactory
 from utils import wait_for_position_estimator
 
 # crazyflie config
-URIS = ["radio://0/90/2M/E7E7E7E7E5"]
+URIS = ["radio://0/30/2M/E7E7E7E7E5"]
 DRY_RUN = False
 # Init Drivers
 init_drivers()
@@ -26,7 +26,7 @@ movenet = model.signatures['serving_default']
 threshold = .3
 
 # Loads video source (0 is for main webcam)
-video_source = 0
+video_source = 1
 cap = cv2.VideoCapture(video_source)
 
 # Checks errors while opening the Video Capture

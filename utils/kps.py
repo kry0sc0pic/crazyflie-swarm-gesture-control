@@ -89,15 +89,15 @@ class KeypointMapper:
         if self.type == 'movenet':
             if isinstance(points,MovenetKeypoints):
                 if(points.right_hip[2] > self.threshold):
-                    self.right_hip = (points.right_hip[0],points.right_hip[1])
+                    self.right_hip = (points.right_hip[1],points.right_hip[0])
                 if(points.left_hip[2] > self.threshold):
-                    self.left_hip = (points.left_hip[0],points.left_hip[1])
+                    self.left_hip = (points.left_hip[1],points.left_hip[0])
                 if(points.right_wrist[2] > self.threshold):
-                    self.right_wrist = (points.right_wrist[0],points.right_wrist[1])
+                    self.right_wrist = (points.right_wrist[1],points.right_wrist[0])
                 if(points.left_wrist[2] > self.threshold):
-                    self.left_wrist = (points.left_wrist[0],points.left_wrist[1])
+                    self.left_wrist = (points.left_wrist[1],points.left_wrist[0])
                 if(points.nose[2] > self.threshold):
-                    self.nose = (points.nose[0],points.nose[1])
+                    self.nose = (points.nose[1],points.nose[0])
                 self.tracked_coordinates_list = [self.nose,self.left_wrist,self.right_wrist,self.left_hip,self.right_hip]
             else:
                 raise Exception("Use MovenetKeypoints for movenet points")
@@ -115,6 +115,8 @@ class KeypointMapper:
         return avg_diff       
 
     def calculate_desired_height(self) -> float:
-        avg_diff = self.calculate_raw_difference()
-        return avg_diff
+        avg_diff = self.calculate_raw_height()
+        if(0 < avg_diff < 1):
+            return min((avg_diff * 1.5) + 0.5,2)
+        return 0.5
     

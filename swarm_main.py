@@ -13,14 +13,14 @@ import numpy as np
 from utils.kps import list_to_movenet_keypoints, KeypointMapper, MovenetKeypoints
 
 # Pose Estimation Options
-USE_TFLITE = False # Use the TFLite Lightning Model
+USE_TFLITE = True # Use the TFLite Lightning Model
 TFLITE_MODEL = "models/singlepose-lightning/3.tflite" # Model Path
-VIDEO_SOURCE = None # Set a path to use a video as input, leave it as `None` to use the webcam
+VIDEO_SOURCE = 1 # Set a path to use a video as input, leave it as `None` to use the webcam
 PREDICTION_THRESHOLD = .3
 
 # Crazyflie Options
-URIS = [] # the addresses for the crazyflies
-DRY_RUN = True # Set to `True` to not use the actual crazyflies
+URIS = ["radio://0/20/2M/E7E7E7E7E5","radio://0/60/2M/E7E7E7E7E5","radio://0/40/2M/E7E7E7E7E5","radio://0/80/2M/E7E7E7E7E5","radio://0/90/2M/E7E7E7E7E5"] # the addresses for the crazyflies
+DRY_RUN = False # Set to `True` to not use the actual crazyflies
 
 
 # Variables
@@ -62,6 +62,7 @@ if not video_capture.isOpened():
 success, frame = video_capture.read()
 if not success:
     print("[VideoCapture] Error reading frame")
+    exit()
 
 dim_y , dim_x , _ = frame.shape
 
@@ -84,7 +85,8 @@ while success:
     if frame_count >= 10:
         capture_end_time = time.time()
         fps = frame_count / (capture_end_time - capture_start_time)
-        frame_count = capture_end_time
+        frame_count = 0
+        capture_start_time = time.time()
 
     # Convert Image to Correct Format
     tf_img = cv2.resize(frame,(192,192))
@@ -110,20 +112,18 @@ while success:
         keypointMapper.update(mapped_points)
     
     des_height = keypointMapper.calculate_desired_height()
-    if(not calibrationComplete and len(rest_position_readings) < readings_to_take):
-        h = keypointMapper.calculate_raw_height()
-        rest_position_readings.append(h)
-        if(len(rest_position_readings) == readings_to_take):
-            rest_position_diff = sum(rest_position_readings) / readings_to_take
-            calibrationComplete = True
+    # if(not calibrationComplete and len(rest_position_readings) < readings_to_take):
+    #     h = keypointMapper.calculate_raw_height()
+    #     rest_position_readings.append(h)
+    #     if(len(rest_position_readings) == readings_to_take):
+    #         rest_position_diff = sum(rest_position_readings) / readings_to_take
+    #         calibrationComplete = True
 
-        
-    
-    #TODO: auto takeoff logic
-
-
-    if calibrationComplete:
+    if manager.state == "not_flying":
+        manager.takeoff()
+    else:
         manager.set_height(des_height)
+    
     
  # iterate through keypoints
     for i,k in enumerate(keypoints[0,0,:,:]):
@@ -140,10 +140,11 @@ while success:
             frame = cv2.circle(frame, (xc, yc), 2, (0, 255, 0), 5)
         
     if all(i != (0,0) for i in keypointMapper.tracked_coordinates_list):
-        left_wrist = (keypointMapper.left_wrist[0]*dim_x,keypointMapper.left_wrist[1]*dim_y)
-        right_wrist = (keypointMapper.right_wrist[0]*dim_x,keypointMapper.right_wrist[1]*dim_y)
-        left_hip = (keypointMapper.left_hip[0]*dim_x,keypointMapper.left_hip[1]*dim_y)
-        right_hip = (keypointMapper.right_hip[0]*dim_x,keypointMapper.right_hip[1]*dim_y)
+        left_wrist = (int(keypointMapper.left_wrist[0]*dim_x),int(keypointMapper.left_wrist[1]*dim_y))
+        right_wrist = (int(keypointMapper.right_wrist[0]*dim_x),int(keypointMapper.right_wrist[1]*dim_y))
+        left_hip = (int(keypointMapper.left_hip[0]*dim_x),int(keypointMapper.left_hip[1]*dim_y))
+        right_hip = (int(keypointMapper.right_hip[0]*dim_x),int(keypointMapper.right_hip[1]*dim_y))
+
         if(left_wrist[1] > left_hip[1]):
             left_line_color = (255,0,0) # red
         else:
@@ -155,8 +156,8 @@ while success:
             right_line_color = (0,255,0) # green
         
         # wrist to hip level
-        right_hip_level = (right_wrist[0],right_hip[1])
-        left_hip_level = (left_wrist[0],left_hip[1])
+        right_hip_level = (int(right_wrist[0]),int(right_hip[1]))
+        left_hip_level = (int(left_wrist[0]),int(left_hip[1]))
 
         # lines
         cv2.line(frame, right_wrist, right_hip_level, right_line_color, 2)
@@ -165,11 +166,11 @@ while success:
         # avg calc
         norm_h =  (right_wrist[0]  + left_wrist[0]) / 2
         img_h = norm_h * dim_y
-        cv2.line(frame,(0,img_h),(dim_x,img_h),(0,0,255),1)
+        # cv2.line(frame,(0,int(img_h)),(dim_x,int(img_h)),(0,0,255),1) # blue
         
-        # baseline
-        if (calibrationComplete):
-            cv2.line(frame,(0,rest_position_diff * dim_y),(dim_x,rest_position_diff*dim_y),(255,0,0),1)
+        # # baseline
+        # if (calibrationComplete):
+        #     cv2.line(frame,(0,rest_position_diff * dim_y),(dim_x,rest_position_diff*dim_y),(255,0,0),1)
         
 
 
