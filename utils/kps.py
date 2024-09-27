@@ -113,6 +113,14 @@ class KeypointMapper:
         l_diff = self.left_hip[1] - self.left_wrist[1]
         avg_diff = (r_diff+l_diff)/2
         return avg_diff       
+    
+    def calculate_right_diff(self) -> float:
+        r_diff = self.right_hip[1] - self.right_wrist[1]
+        return r_diff
+    
+    def calculate_left_diff(self) -> float:
+        l_diff = self.left_hip[1] - self.left_wrist[1]
+        return l_diff
 
     def calculate_desired_height(self) -> float:
         avg_diff = self.calculate_raw_height()
@@ -120,3 +128,6 @@ class KeypointMapper:
             return min((avg_diff * 1.5) + 0.5,2)
         return 0.5
     
+    def calculate_lateral_difference(self) -> float:
+        abs_diff = abs(self.left_wrist[0] - self.right_wrist[0])
+        return abs_diff
