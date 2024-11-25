@@ -16,28 +16,21 @@ USE_TFLITE = True # Use the TFLite Lightning Model
 TFLITE_MODEL = "models/singlepose-lightning/3.tflite" # Model Path
 VIDEO_SOURCE = 0 # Set a path to use a video as input, leave it as `None` to use the webcam
 PREDICTION_THRESHOLD = .3
-LATERAL_DIFFERENCE_THRESHOLD = 0.1 # threshold to enable circle
-VERTICAL_DIFFERENCE_THRESHOLD = 0.1 # threshold to detect baseline position
+LATERAL_DIFFERENCE_THRESHOLD = 0.06 # threshold to enable circle
+VERTICAL_DIFFERENCE_THRESHOLD = 0.04 # threshold to detect baseline position
 LAST_BASELINE_READING = None
 BASELINE_ACTION_TIME = 5.0 # 2 secs for takeoff/land in baseline diff
 
 # Crazyflie Options
 URIS = [
-    # "radio://0/20/2M/E7E7E7E7E5",
-    # "radio://0/30/2M/E7E7E7E7E5",
-    # "radio://0/40/2M/E7E7E7E7E5",
-    # "radio://0/60/2M/E7E7E7E7E5",
-    # "radio://0/80/2M/E7E7E7E7E5",
-    # "radio://0/90/2M/E7E7E7E7E5",
-    # "radio://0/10/2M/E7E7E7E7E7",
-    # "radio://0/30/2M/E7E7E7E7E7",
+    "radio://0/45/2M/E7E7E7E7E7",
+    "radio://0/30/2M/E7E7E7E7E7",
     # "radio://0/40/2M/E7E7E7E7E7",
-    # "radio://0/50/2M/E7E7E7E7E7",
-    # "radio://0/70/2M/E7E7E7E7E7",
-    # "radio://0/80/2M/E7E7E7E7E7",
+    "radio://0/40/2M/E7E7E7E7E5",
+    "radio://0/80/2M/E7E7E7E7E5",
     ] # the addresses for the crazyflies
-DRY_RUN = False # Set to `True` to not use the actual crazyflies
-
+DRY_RUN = True # Set to `True` to not use the actual crazyflies
+HEIGHT_LIMIT = 2.0 # Height limit for the crazyflies
 
 # Variables
 calibrationComplete = False
@@ -177,7 +170,7 @@ while success:
                 if circle_running:
                     circle_running = False
                     manager.stop_all()
-                manager.set_uniform_height(des_height)
+                manager.set_uniform_height(min(HEIGHT_LIMIT,des_height*1.5))
 
             
 
