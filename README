@@ -1,1 +1,21 @@
-flying crazyflies using pose estimation
+# flying crazyflies using pose estimation
+
+### prequisties
+1. [Anaconda](https://www.anaconda.com/) or some alternative such as miniconda.
+2. [Crazyflie Client](https://www.bitcraze.io/documentation/repository/crazyflie-clients-python/master/installation/install/) installed.
+2. Non-obosolete hardware
+3. A webcam. 
+
+
+### setup
+1. create a python 3.10 environment
+`conda create -n gesture-control python==3.10`
+
+2. activate environment
+`conda activate gesture-control`
+
+3. install dependencies
+`pip install -r requirements.txt`
+
+
+### running script
