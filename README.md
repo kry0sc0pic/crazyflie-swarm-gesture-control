@@ -22,5 +22,5 @@
 _by default the script runs in dry run mode where it will not attempt to connect to the crazyflies. This is useful do debug the pose estimation logic separately._
 
 1. open `swarm_main.py`, configure the radio addresses for the crazyflies
-2. set `DRY_RUN` to false and asve
+2. set `DRY_RUN` to false and save
 3. `python swarm_main.py`
